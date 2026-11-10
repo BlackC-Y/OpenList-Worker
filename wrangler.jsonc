@@ -7,7 +7,7 @@
 // 用户填入的值会成为该 Worker 的 Secret，后续更新不会被覆盖。
 // =============================================================================
 {
-  "name": "openlist-tsworkers",
+  "name": "openlist-worker",
   "main": "src/backend/worker.ts",
 
   // iconv-lite 只有 FTP 驱动在用，而 Workers 没有 TCP socket、FTP 驱动不可用。
@@ -50,14 +50,14 @@
     //   do         - Cloudflare Durable Objects（需下方 durable_objects）
     //   mysql      - 外部 MySQL（需 MYSQL_URLS 或 MYSQL_HOST 等，仅 Node 运行时）
     // 说明：mysql 仅在配置了连接信息时才参与 auto 探测，避免无谓的 TCP 建连。
-    "DB_DRIVER": "auto",
+    "DB_DRIVER": "kv",
 
     // 敏感字段落盘算法（默认 none：不加密；与 DB_DRIVER/DB_FORMAT 正交）：
     //   none（默认）              - 不加密，敏感字段明文落盘
     //   aes-256-gcm              - HKDF 派生 AES-256-GCM 密钥（enc:v2:，推荐）
     //   aes-256-cbc-hmac         - AES-256-CBC + HMAC-SHA256（enc:v3:）
     //   chacha20-poly1305        - ChaCha20-Poly1305（enc:v4:，RFC 8439，纯 JS）
-    "DB_CIPHER": "none",
+    "DB_CIPHER": "aes-256-gcm",
 
     // ── 安全鉴权（推荐以 Secret 类型配置，见 .dev.vars.example）──────────
     //
@@ -73,7 +73,7 @@
     // ── 可选参数 ──────────────────────────────────────────────────────────
     //
     // 单次整体上传（/put、/form）大小上限，单位字节。默认 26214400（25MB）
-    // "MAX_UPLOAD": "26214400",
+    "MAX_UPLOAD": "52428800",
     //
     // 分片上传单片大小上限，单位字节。默认 16777216（16MB）
     // "MAX_UPPART": "16777216",
@@ -139,4 +139,30 @@
   // "r2_buckets": [
   //   { "binding": "R2", "bucket_name": "your-bucket" }
   // ],
+
+  "kv_namespaces": [{
+      "binding": "KV",
+      "id": "5e60a516d9b74e83a9f64bed22c58b28"
+  }],
+
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "redact_query_string": false,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": false,
+      "head_sampling_rate": 1,
+      "persist": true
+    },
+    "issues": {
+      "enabled": true
+    }
+  },
+
 }
